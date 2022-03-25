@@ -4,4 +4,5 @@
     <string name="title_label">Название</string>
     <string name="details_label">Детали</string>
     <string name="solved_label">Выбрано</string>
+    <string name="policy_call">Связаться с полицией</string>
 </resources>

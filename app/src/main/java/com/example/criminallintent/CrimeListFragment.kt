@@ -23,7 +23,7 @@ class CrimeListFragment: Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(TAG, "Create ${crimeListViewModel.crimesList.size} crimes")
+        Log.d(TAG, "onCreate ${crimeListViewModel.crimesList.size} crimes")
     }
 
     override fun onCreateView(
@@ -69,17 +69,34 @@ class CrimeListFragment: Fragment() {
 
     private inner class CrimeAdapter(val crimes: List<Crime>): RecyclerView.Adapter<CrimeHolder>() {
 
+        override fun getItemViewType (position: Int): Int {
+            Log.d(TAG, "getItemViewType")
+            val crimeType = crimes[position].requiresPolice
+            if (crimeType) return 0
+            return 1
+        }
+
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CrimeHolder {
-            val view = LayoutInflater.from(parent.context).inflate(R.layout.list_item_crime, parent, false)
+            Log.d(TAG, "onCreateViewHolder")
+            lateinit var view: View
+            if (viewType == 1) {
+                view = LayoutInflater.from(parent.context).inflate(R.layout.list_item_crime, parent, false)
+            } else {
+                view = LayoutInflater.from(parent.context).inflate(R.layout.list_item_crime_danger, parent, false)
+            }
+
             return CrimeHolder(view)
         }
 
         override fun onBindViewHolder(holder: CrimeHolder, position: Int) {
+
             val crime = crimes[position]
             holder.bind(crime)
+            Log.d(TAG, "onBindViewHolder")
         }
 
         override fun getItemCount(): Int {
+            Log.d(TAG, "getItemCount")
             return crimes.size
         }
 
@@ -89,6 +106,7 @@ class CrimeListFragment: Fragment() {
         val crimes = crimeListViewModel.crimesList
         val adapter = CrimeAdapter(crimes)
         recyclerView.adapter = adapter
+        Log.d(TAG, "updateUI")
     }
 
 }
