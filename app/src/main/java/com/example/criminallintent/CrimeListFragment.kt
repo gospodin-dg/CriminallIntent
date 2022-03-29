@@ -5,12 +5,18 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import java.text.DateFormat
+import java.time.DayOfWeek
+import java.time.Month
+import java.time.MonthDay
+import java.time.Year
 
 private const val TAG: String = "CrimeListFragment"
 
@@ -47,18 +53,30 @@ class CrimeListFragment: Fragment() {
     private inner class CrimeHolder(view: View): RecyclerView.ViewHolder(view), View.OnClickListener {
 
         private lateinit var crime: Crime
-        private val titleTextView: TextView = view.findViewById(R.id.crime_title)
-        private val dateTextView: TextView = view.findViewById(R.id.crime_date)
+        private val titleTextView: TextView = itemView.findViewById(R.id.crime_title)
+        private val dateTextView: TextView = itemView.findViewById(R.id.crime_date)
+        private val crimeSolvedImageView: ImageView = itemView.findViewById(R.id.is_solved)
 
         init {
             itemView.setOnClickListener(this)
         }
 
         fun bind(crime: Crime){
-
+            val dayOfWeek = DateFormat.DAY_OF_WEEK_FIELD.toString()
+            val month: Month
+            val dayOfMonthDay: MonthDay
+            val year: Year
             this.crime = crime
             titleTextView.text = this.crime.title
-            dateTextView.text = this.crime.date.toString()
+            //dateTextView.text = this.crime.date.toString()
+            dateTextView.text = dayOfWeek
+
+
+            crimeSolvedImageView.visibility = if (crime.isSolved) {
+                ImageView.VISIBLE
+            } else {
+                ImageView.GONE
+            }
         }
 
         override fun onClick(v: View?) {
