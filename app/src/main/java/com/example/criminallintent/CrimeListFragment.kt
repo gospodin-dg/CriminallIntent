@@ -55,6 +55,7 @@ class CrimeListFragment: Fragment() {
         }
 
         fun bind(crime: Crime){
+
             this.crime = crime
             titleTextView.text = this.crime.title
             dateTextView.text = this.crime.date.toString()
