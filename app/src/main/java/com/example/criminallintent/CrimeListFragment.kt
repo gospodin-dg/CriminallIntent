@@ -29,7 +29,7 @@ class CrimeListFragment: Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(TAG, "Create ${crimeListViewModel.crimesList.size} crimes")
+        //Log.d(TAG, "Create ${crimeListViewModel.crimesList.size} crimes")
     }
 
     override fun onCreateView(
@@ -105,7 +105,7 @@ class CrimeListFragment: Fragment() {
     }
 
     private fun updateUI() {
-        val crimes = crimeListViewModel.crimesList
+        val crimes = crimeListViewModel.crimes
         val adapter = CrimeAdapter(crimes)
         recyclerView.adapter = adapter
     }
