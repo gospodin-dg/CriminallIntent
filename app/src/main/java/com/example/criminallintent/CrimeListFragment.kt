@@ -9,6 +9,8 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -26,11 +28,7 @@ class CrimeListFragment: Fragment() {
         ViewModelProviders.of(this).get(CrimeListViewModel::class.java)
     }
     private lateinit var recyclerView: RecyclerView
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        //Log.d(TAG, "Create ${crimeListViewModel.crimesList.size} crimes")
-    }
+    private var crimeAdapter: CrimeAdapter? = CrimeAdapter(emptyList())
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -40,8 +38,21 @@ class CrimeListFragment: Fragment() {
         val view = inflater.inflate(R.layout.fragment_crime_list, container, false)
         recyclerView = view.findViewById(R.id.crime_recycler_view) as RecyclerView
         recyclerView.layoutManager = LinearLayoutManager(context)
-        updateUI()
+        recyclerView.adapter = crimeAdapter
         return view
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        crimeListViewModel.crimesListLiveData.observe(
+            viewLifecycleOwner,
+            Observer { crimes ->
+                crimes?.let {
+                    Log.i(TAG, "Got crimes ${crimes.size}")
+                    updateUI(crimes)
+                }
+            }
+        )
     }
 
     companion object {
@@ -62,16 +73,9 @@ class CrimeListFragment: Fragment() {
         }
 
         fun bind(crime: Crime){
-            val dayOfWeek = DateFormat.DAY_OF_WEEK_FIELD.toString()
-            val month: Month
-            val dayOfMonthDay: MonthDay
-            val year: Year
             this.crime = crime
             titleTextView.text = this.crime.title
-            //dateTextView.text = this.crime.date.toString()
-            dateTextView.text = dayOfWeek
-
-
+            dateTextView.text = this.crime.date.toString()
             crimeSolvedImageView.visibility = if (crime.isSolved) {
                 ImageView.VISIBLE
             } else {
@@ -104,8 +108,7 @@ class CrimeListFragment: Fragment() {
 
     }
 
-    private fun updateUI() {
-        val crimes = crimeListViewModel.crimes
+    private fun updateUI(crimes: List<Crime>) {
         val adapter = CrimeAdapter(crimes)
         recyclerView.adapter = adapter
     }
