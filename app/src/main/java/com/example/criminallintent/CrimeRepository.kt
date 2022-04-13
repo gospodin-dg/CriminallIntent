@@ -6,10 +6,13 @@ import androidx.room.Room
 import com.example.criminallintent.database.CrimeDao
 import com.example.criminallintent.database.CrimeDataBase
 import java.util.*
+import java.util.concurrent.Executors
 
 private const val DATABASE_NAME = "crime-database"
 
 class CrimeRepository private constructor(context: Context){
+
+    private val executor = Executors.newSingleThreadExecutor()
 
     private val database: CrimeDataBase = Room.databaseBuilder(
         context.applicationContext,
@@ -23,6 +26,20 @@ class CrimeRepository private constructor(context: Context){
 
     fun getCrimes(): LiveData<List<Crime>> = Dao.getCrimes()
 
+    fun updateCrime(crime: Crime) {
+        executor.execute {
+            Dao.updateCrime(crime)
+        }
+    }
+
+    fun addCrime(crime: Crime) {
+        executor.execute {
+            Dao.updateCrime(crime)
+        }
+    }
+
+
+
     companion object{
         private var INSTANCE: CrimeRepository? = null
 
@@ -35,6 +52,5 @@ class CrimeRepository private constructor(context: Context){
         fun getRepository(): CrimeRepository {
             return INSTANCE ?: throw IllegalStateException("CrimeRepository must be initialized")
         }
-
     }
 }
