@@ -20,7 +20,7 @@ class DatePickerFragment : DialogFragment() {
         val calendar = Calendar.getInstance()
         val date = arguments?.getSerializable(DATE) as Date
         calendar.time = date
-        val immutabledHours = calendar.get(Calendar.HOUR)
+        val immutabledHours = calendar.get(Calendar.HOUR_OF_DAY)
         val immutabledMinutes = calendar.get(Calendar.MINUTE)
         val immutabledSecondes = calendar.get(Calendar.SECOND)
         val initialYear = calendar.get(Calendar.YEAR)

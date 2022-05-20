@@ -3,8 +3,6 @@ package com.example.criminallintent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.text.format.Time
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,6 +14,8 @@ import androidx.lifecycle.ViewModelProviders
 import java.util.*
 import androidx.lifecycle.Observer
 import com.example.criminallintent.database.TimePickerFragment
+import java.text.DateFormat
+
 
 private const val ARGS_BUNDLE_KEY = "crime_Id"
 private const val TAG = "CrimeFragment"
@@ -72,13 +72,12 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
 
     private fun updateUI() {
         titleField.setText(crime.title)
-        dateButton.text = crime.date.toString()
-        timeButton.text = crime.date.hours.toString() + ":" + crime.date.minutes.toString() + ":" + crime.date.seconds.toString() + " GMT"
+        dateFormatButton(crime.date)
+        //timeButton.text = crime.date.hours.toString() + ":" + crime.date.minutes.toString() + ":" + crime.date.seconds.toString() + " GMT"
         solvedCheckBox.apply {
             isChecked = crime.isSolved
             jumpDrawablesToCurrentState()
         }
-
     }
 
     override fun onStart() {
@@ -145,6 +144,13 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
     override fun onTimeSelected(date: Date) {
         crime.date = date
         updateUI()
+    }
+
+    fun dateFormatButton(date: Date) {
+        val dateFormatInstance = DateFormat.getDateInstance(DateFormat.FULL).format(date)
+        val timeFormatInstance = DateFormat.getTimeInstance(DateFormat.MEDIUM, Locale.ROOT).format(date)
+        dateButton.text = dateFormatInstance
+        timeButton.text = timeFormatInstance
     }
 
 }

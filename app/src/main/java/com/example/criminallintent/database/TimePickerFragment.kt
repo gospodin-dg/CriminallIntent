@@ -19,7 +19,7 @@ class TimePickerFragment: DialogFragment() {
         val immutabledYear = calendar.get(Calendar.YEAR)
         val immutabledMonth = calendar.get(Calendar.MONTH)
         val immutabledDayOfMonth = calendar.get(Calendar.DAY_OF_MONTH)
-        val initialHours = calendar.get(Calendar.HOUR)
+        val initialHours = calendar.get(Calendar.HOUR_OF_DAY)
         val initialMinutes = calendar.get(Calendar.MINUTE)
         val isPM = true
 
