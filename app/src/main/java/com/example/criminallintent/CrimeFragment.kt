@@ -3,6 +3,7 @@ package com.example.criminallintent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.text.format.Time
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -14,15 +15,21 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import java.util.*
 import androidx.lifecycle.Observer
+import com.example.criminallintent.database.TimePickerFragment
 
 private const val ARGS_BUNDLE_KEY = "crime_Id"
 private const val TAG = "CrimeFragment"
+private const val DIALOG_DATE = "DialogDate"
+private const val DIALOG_TIME = "DialogTime"
+private const val REQUEST_DATE = 100
+private const val REQUEST_TIME = 200
 
-class CrimeFragment: Fragment() {
+class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragment.Callbacks {
 
     private lateinit var crime: Crime
     private lateinit var titleField: EditText
     private lateinit var dateButton: Button
+    private lateinit var timeButton: Button
     private lateinit var solvedCheckBox: CheckBox
     private val crimeDetailViewModel: CrimeDetailViewModel by lazy {
         ViewModelProviders.of(this).get(CrimeDetailViewModel :: class.java)
@@ -44,11 +51,8 @@ class CrimeFragment: Fragment() {
         val view = inflater.inflate(R.layout.fragment_crime, container, false)
         titleField = view.findViewById(R.id.crime_title) as EditText
         dateButton = view.findViewById(R.id.btn_crime_date) as Button
+        timeButton = view.findViewById(R.id.btn_crime_time) as Button
         solvedCheckBox = view.findViewById(R.id.solved_label_checkbox) as CheckBox
-        dateButton.apply{
-            text = crime.date.toString()
-            isEnabled = false
-        }
 
         return view
     }
@@ -69,6 +73,7 @@ class CrimeFragment: Fragment() {
     private fun updateUI() {
         titleField.setText(crime.title)
         dateButton.text = crime.date.toString()
+        timeButton.text = crime.date.hours.toString() + ":" + crime.date.minutes.toString() + ":" + crime.date.seconds.toString() + " GMT"
         solvedCheckBox.apply {
             isChecked = crime.isSolved
             jumpDrawablesToCurrentState()
@@ -91,14 +96,29 @@ class CrimeFragment: Fragment() {
             override fun afterTextChanged(s: Editable?) {
 
             }
-
         }
+
         titleField.addTextChangedListener(titleWatcher)
         solvedCheckBox.apply{
             setOnCheckedChangeListener { _, isChecked ->
                 crime.isSolved = isChecked
             }
         }
+
+        dateButton.setOnClickListener{
+            DatePickerFragment.newInstance(crime.date).apply {
+                setTargetFragment(this@CrimeFragment, REQUEST_DATE)
+                show(this@CrimeFragment.requireFragmentManager(), DIALOG_DATE)
+            }
+        }
+
+        timeButton.setOnClickListener{
+            TimePickerFragment.newInstance(crime.date).apply {
+                setTargetFragment(this@CrimeFragment, REQUEST_TIME)
+                show(this@CrimeFragment.requireFragmentManager(), DIALOG_TIME)
+            }
+        }
+
     }
 
     override fun onStop() {
@@ -116,4 +136,15 @@ class CrimeFragment: Fragment() {
             }
         }
     }
+
+    override fun onDateSelected(date: Date) {
+        crime.date = date
+        updateUI()
+    }
+
+    override fun onTimeSelected(date: Date) {
+        crime.date = date
+        updateUI()
+    }
+
 }

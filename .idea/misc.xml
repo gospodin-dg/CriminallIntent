@@ -4,6 +4,8 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Programing/Android_Studio_Projects/CriminalIntent/app/src/main/res/layout/fragment_crime.xml" value="0.3546875" />
+        <entry key="..\:/Programing/Android_Studio_Projects/CriminalIntent/app/src/main/res/layout/fragment_crime_list.xml" value="0.3546875" />
+        <entry key="..\:/Programing/Android_Studio_Projects/CriminalIntent/app/src/main/res/layout/fragment_date_picker.xml" value="0.3546875" />
         <entry key="..\:/Programing/Android_Studio_Projects/CriminalIntent/app/src/main/res/layout/list_item_crime.xml" value="0.75" />
         <entry key="..\:/Programing/Android_Studio_Projects/CriminalIntent/app/src/main/res/mipmap-anydpi-v26/ic_solved.xml" value="0.21354166666666666" />
         <entry key="..\:/Programing/Android_Studio_Projects/CriminallIntent/app/src/main/res/layout/activity_main.xml" value="0.3359375" />

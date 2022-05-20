@@ -32,6 +32,12 @@
         android:layout_height="wrap_content"
         tools:text="Thu Mar 17 13:03 EST 2022" />
 
+    <Button
+        android:id="@+id/btn_crime_time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:text="Thu Mar 17 13:03 EST 2022" />
+
     <CheckBox
         android:id="@+id/solved_label_checkbox"
         android:layout_width="match_parent"
