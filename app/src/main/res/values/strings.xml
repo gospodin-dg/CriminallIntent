@@ -6,4 +6,18 @@
     <string name="solved_label">Выбрано</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="new_crime">Новая запись</string>
+    <string name="empty_list_hint">Список пуст!</string>
+    <string name="create_first_note_btn">Создать запись!</string>
+    <string name="choose_suspect_btn">Выбрать подозреваемого</string>
+    <string name="send_crime_report_btn">Отправить отчет о преступлении</string>
+
+    <string name="crime_report">%1$s! Преступление было обнаружено %2$s. %3$s, и %4$s</string>
+    <string name="crime_report_solved">Дело раскрыто</string>
+    <string name="crime_report_unsolved">Дело не раскрыто</string>
+    <string name="crime_report_no_suspect">В деле нет подозреваемых</string>
+    <string name="crime_report_suspect">Подозреваемый это - %s.</string>
+    <string name="crime_report_subject">CriminalIntent Crime Report</string>
+    <string name="send_report">Отправить сообщение о преступлении через</string>
+
 </resources>

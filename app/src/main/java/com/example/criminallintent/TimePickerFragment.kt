@@ -1,4 +1,4 @@
-package com.example.criminallintent.database
+package com.example.criminallintent
 
 import android.app.Dialog
 import android.app.TimePickerDialog
