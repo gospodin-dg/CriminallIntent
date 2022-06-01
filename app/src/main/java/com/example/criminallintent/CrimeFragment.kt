@@ -1,7 +1,13 @@
 package com.example.criminallintent
 
+
+import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
+import android.net.Uri
 import android.os.Bundle
+import android.provider.ContactsContract
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -24,6 +30,7 @@ private const val DIALOG_DATE = "DialogDate"
 private const val DIALOG_TIME = "DialogTime"
 private const val REQUEST_DATE = 100
 private const val REQUEST_TIME = 200
+private const val REQUEST_SUSPECT = 300
 private const val DATE_FORMAT = "EEE, MMM dd, yyyy"
 private const val TIME_FORMAT = "hh:mm"
 
@@ -32,6 +39,7 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
     private lateinit var crime: Crime
     private lateinit var titleField: EditText
     private lateinit var sendReportButton: Button
+    private lateinit var chooseSuspectButton: Button
     private lateinit var dateButton: Button
     private lateinit var timeButton: Button
     private lateinit var solvedCheckBox: CheckBox
@@ -57,6 +65,7 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
         dateButton = view.findViewById(R.id.btn_crime_date) as Button
         timeButton = view.findViewById(R.id.btn_crime_time) as Button
         sendReportButton = view.findViewById(R.id.send_crime_report_btn) as Button
+        chooseSuspectButton = view.findViewById(R.id.choose_suspect_btn) as Button
         solvedCheckBox = view.findViewById(R.id.solved_label_checkbox) as CheckBox
 
         return view
@@ -81,6 +90,9 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
         solvedCheckBox.apply {
             isChecked = crime.isSolved
             jumpDrawablesToCurrentState()
+        }
+        if (crime.suspect.isNotEmpty()) {
+            chooseSuspectButton.text = crime.suspect
         }
     }
 
@@ -134,6 +146,15 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
             }
         }
 
+        chooseSuspectButton.apply {
+            val pickSuspectIntent = Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI)
+            setOnClickListener {
+                startActivityForResult(pickSuspectIntent, REQUEST_SUSPECT)
+            }
+            val packageManager: PackageManager = requireActivity().packageManager
+            val resolvedActivity: ResolveInfo? = packageManager.resolveActivity(pickSuspectIntent, PackageManager.MATCH_DEFAULT_ONLY)
+            isEnabled = resolvedActivity != null
+        }
     }
 
     override fun onStop() {
@@ -179,10 +200,31 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
         val suspect = if (crime.suspect.isBlank()) {
             getString(R.string.crime_report_no_suspect)
         } else {
-            getString(R.string.crime_report_suspect)
+            getString(R.string.crime_report_suspect, crime.suspect)
         }
 
         return getString(R.string.crime_report, crime.title, dateString, solvedString, suspect)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        when {
+            resultCode != Activity.RESULT_OK -> return
+            requestCode == REQUEST_SUSPECT && data != null -> {
+                val contactUri: Uri? = data.data
+                val contactFields = arrayOf(ContactsContract.Contacts.DISPLAY_NAME)
+                val cursor = contactUri?.let { requireActivity().contentResolver.query(it, contactFields, null, null, null) }
+                cursor?.use {
+                    if (it.count == 0) {
+                        return
+                    }
+                    it.moveToFirst()
+                    val suspect = it.getString(0)
+                    crime.suspect = suspect
+                    crimeDetailViewModel.saveCrime(crime)
+                    chooseSuspectButton.text = suspect
+                }
+            }
+        }
     }
 
 }
