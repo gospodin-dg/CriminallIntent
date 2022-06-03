@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:title="@string/crime_read"
+        android:id="@+id/read_crime"/>
+    <item android:title="@string/crime_edit"
+        android:id="@+id/edit_crime"/>
+    <item android:title="@string/crime_delete"
+        android:id="@+id/delete_crime"/>
+</menu>

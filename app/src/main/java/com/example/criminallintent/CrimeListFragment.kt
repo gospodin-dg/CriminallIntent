@@ -1,12 +1,14 @@
 package com.example.criminallintent
 
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -15,8 +17,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import java.text.DateFormat
 import java.util.*
+import java.util.zip.Inflater
 
 private const val TAG: String = "CrimeListFragment"
+private const val OPEN = 101
+private const val EDIT = 102
+private const val DELETE = 103
 
 class CrimeListFragment: Fragment() {
 
@@ -85,12 +91,11 @@ class CrimeListFragment: Fragment() {
             viewLifecycleOwner,
             Observer { crimes ->
                 crimes?.let {
-                    Log.i(TAG, "Got crimes ${crimes.size}")
                     updateUI(crimes)
                 }
             }
         )
-        firstCrimeButton.setOnClickListener{
+        firstCrimeButton.setOnClickListener {
             createNewCrime()
         }
     }
@@ -101,7 +106,8 @@ class CrimeListFragment: Fragment() {
         }
     }
 
-    private inner class CrimeHolder(view: View): RecyclerView.ViewHolder(view), View.OnClickListener {
+
+    private inner class CrimeHolder(view: View) : RecyclerView.ViewHolder(view), View.OnClickListener, View.OnCreateContextMenuListener, MenuItem.OnMenuItemClickListener {
 
         private lateinit var crime: Crime
         private val titleTextView: TextView = itemView.findViewById(R.id.crime_title)
@@ -110,9 +116,10 @@ class CrimeListFragment: Fragment() {
 
         init {
             itemView.setOnClickListener(this)
+            itemView.setOnCreateContextMenuListener(this)
         }
 
-        fun bind(crime: Crime){
+        fun bind(crime: Crime) {
             this.crime = crime
             titleTextView.text = this.crime.title
             val dateFormat = DateFormat.getDateInstance(DateFormat.FULL).format(this.crime.date)
@@ -128,13 +135,44 @@ class CrimeListFragment: Fragment() {
             callbacks?.onCrimeSelected(crime.id)
         }
 
+        override fun onCreateContextMenu(
+            menu: ContextMenu?,
+            v: View?,
+            menuInfo: ContextMenu.ContextMenuInfo?
+        ) {
+            /*val menuInflater = MenuInflater(context)
+            menuInflater.inflate(R.menu.context_menu, menu)*/
+            menu?.setHeaderTitle(R.string.context_menu_title)
+            menu?.add(Menu.NONE, OPEN, Menu.NONE, R.string.crime_read)?.setOnMenuItemClickListener(this)
+            menu?.add(Menu.NONE, EDIT, Menu.NONE, R.string.crime_edit)?.setOnMenuItemClickListener(this)
+            menu?.add(Menu.NONE, DELETE, Menu.NONE, R.string.crime_delete)?.setOnMenuItemClickListener(this)
+        }
 
+        override fun onMenuItemClick(item: MenuItem?): Boolean {
+            when (item?.itemId) {
+                OPEN -> {
+                    callbacks?.onCrimeSelected(crime.id)
+                    return true
+                }
+                EDIT -> {
+                    callbacks?.onCrimeSelected(crime.id)
+                    return true
+                }
+                DELETE -> {
+                    crimeListViewModel.deleteCrime(crime)
+                    return true
+                }
+            }
+            return true
+        }
     }
 
-    private inner class CrimeAdapter(val crimes: List<Crime>): RecyclerView.Adapter<CrimeHolder>() {
+    private inner class CrimeAdapter(val crimes: List<Crime>) :
+        RecyclerView.Adapter<CrimeHolder>() {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CrimeHolder {
-            val view = LayoutInflater.from(parent.context).inflate(R.layout.list_item_crime, parent, false)
+            val view =
+                LayoutInflater.from(parent.context).inflate(R.layout.list_item_crime, parent, false)
             return CrimeHolder(view)
         }
 
@@ -165,3 +203,4 @@ class CrimeListFragment: Fragment() {
     }
 
 }
+

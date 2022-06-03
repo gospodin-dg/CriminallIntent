@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">CriminalIntent</string>
+    <string name="app_name">Список нехороших дел</string>
     <string name="title_hint">Введите название преступления</string>
     <string name="title_label">Название</string>
     <string name="details_label">Детали</string>
@@ -19,5 +19,11 @@
     <string name="crime_report_suspect">Главный подозреваемый - %1s!</string>
     <string name="crime_report_subject">CriminalIntent Crime Report</string>
     <string name="send_report">Отправить сообщение о преступлении через</string>
+
+
+    <string name="context_menu_title">Меню записи</string>
+    <string name="crime_read">Открыть</string>
+    <string name="crime_edit">Редактировать</string>
+    <string name="crime_delete">Удалить</string>
 
 </resources>
