@@ -19,6 +19,7 @@
     <string name="crime_report_suspect">Главный подозреваемый - %1s!</string>
     <string name="crime_report_subject">CriminalIntent Crime Report</string>
     <string name="send_report">Отправить сообщение о преступлении через</string>
+    <string name="call_suspect_btn">Позвонить подозреваемому</string>
 
 
     <string name="context_menu_title">Меню записи</string>

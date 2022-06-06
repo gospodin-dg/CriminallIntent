@@ -1,10 +1,14 @@
 package com.example.criminallintent
 
 
+
+import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
+import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
 import android.provider.ContactsContract
@@ -21,6 +25,9 @@ import androidx.lifecycle.ViewModelProviders
 import java.util.*
 import androidx.lifecycle.Observer
 import android.text.format.DateFormat
+import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 
 
 
@@ -33,6 +40,8 @@ private const val REQUEST_TIME = 200
 private const val REQUEST_SUSPECT = 300
 private const val DATE_FORMAT = "EEE, MMM dd, yyyy"
 private const val TIME_FORMAT = "hh:mm"
+private const val REQUEST_CODE_READ_CONTACTS = 500
+private var READ_CONTACTS_GRANTED = false
 
 class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragment.Callbacks {
 
@@ -40,11 +49,12 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
     private lateinit var titleField: EditText
     private lateinit var sendReportButton: Button
     private lateinit var chooseSuspectButton: Button
+    private lateinit var callSuspectButton: Button
     private lateinit var dateButton: Button
     private lateinit var timeButton: Button
     private lateinit var solvedCheckBox: CheckBox
     private val crimeDetailViewModel: CrimeDetailViewModel by lazy {
-        ViewModelProviders.of(this).get(CrimeDetailViewModel :: class.java)
+        ViewModelProviders.of(this).get(CrimeDetailViewModel::class.java)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,7 +62,6 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
         crime = Crime()
         val crimeId: UUID = arguments?.getSerializable(ARGS_BUNDLE_KEY) as UUID
         crimeDetailViewModel.loadCrime(crimeId)
-        //Log.d(TAG, "Fragment bundle args - crimeId = $crimeId")
     }
 
     override fun onCreateView(
@@ -66,6 +75,7 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
         timeButton = view.findViewById(R.id.btn_crime_time) as Button
         sendReportButton = view.findViewById(R.id.send_crime_report_btn) as Button
         chooseSuspectButton = view.findViewById(R.id.choose_suspect_btn) as Button
+        callSuspectButton = view.findViewById(R.id.call_suspect_btn) as Button
         solvedCheckBox = view.findViewById(R.id.solved_label_checkbox) as CheckBox
 
         return view
@@ -76,7 +86,7 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
         crimeDetailViewModel.crimeLiveData.observe(
             viewLifecycleOwner,
             Observer { crime ->
-                 crime?.let {
+                crime?.let {
                     this.crime = crime
                     updateUI()
                 }
@@ -96,38 +106,33 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
         }
     }
 
+
     override fun onStart() {
         super.onStart()
 
-        val titleWatcher = object : TextWatcher{
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-
-            }
-
+        val titleWatcher = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) { }
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 crime.title = s.toString()
             }
-
-            override fun afterTextChanged(s: Editable?) {
-
-            }
+            override fun afterTextChanged(s: Editable?) {  }
         }
 
         titleField.addTextChangedListener(titleWatcher)
-        solvedCheckBox.apply{
+        solvedCheckBox.apply {
             setOnCheckedChangeListener { _, isChecked ->
                 crime.isSolved = isChecked
             }
         }
 
-        dateButton.setOnClickListener{
+        dateButton.setOnClickListener {
             DatePickerFragment.newInstance(crime.date).apply {
                 setTargetFragment(this@CrimeFragment, REQUEST_DATE)
                 show(this@CrimeFragment.requireFragmentManager(), DIALOG_DATE)
             }
         }
 
-        timeButton.setOnClickListener{
+        timeButton.setOnClickListener {
             TimePickerFragment.newInstance(crime.date).apply {
                 setTargetFragment(this@CrimeFragment, REQUEST_TIME)
                 show(this@CrimeFragment.requireFragmentManager(), DIALOG_TIME)
@@ -139,21 +144,28 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
                 type = "text/plain"
                 putExtra(Intent.EXTRA_TEXT, getCrimeReport())
                 putExtra(Intent.EXTRA_SUBJECT, getString(R.string.crime_report_subject))
-            }.also {
-                intent ->
+            }.also { intent ->
                 val chooser = Intent.createChooser(intent, getString(R.string.send_report))
                 startActivity(chooser)
             }
         }
 
         chooseSuspectButton.apply {
-            val pickSuspectIntent = Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI)
+            val pickSuspectIntent =
+                Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI)
             setOnClickListener {
                 startActivityForResult(pickSuspectIntent, REQUEST_SUSPECT)
             }
             val packageManager: PackageManager = requireActivity().packageManager
-            val resolvedActivity: ResolveInfo? = packageManager.resolveActivity(pickSuspectIntent, PackageManager.MATCH_DEFAULT_ONLY)
+            val resolvedActivity: ResolveInfo? =
+                packageManager.resolveActivity(pickSuspectIntent, PackageManager.MATCH_DEFAULT_ONLY)
             isEnabled = resolvedActivity != null
+        }
+
+        callSuspectButton.apply {
+            setOnClickListener {
+                permissionsCheck()
+            }
         }
     }
 
@@ -165,7 +177,7 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
     companion object {
         fun newInstance(crimeId: UUID): CrimeFragment {
             val args = Bundle().apply {
-                putSerializable (ARGS_BUNDLE_KEY, crimeId)
+                putSerializable(ARGS_BUNDLE_KEY, crimeId)
             }
             return CrimeFragment().apply {
                 arguments = args
@@ -183,7 +195,7 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
         updateUI()
     }
 
-    fun dateFormatButton(date: Date) {
+    private fun dateFormatButton(date: Date) {
         val dateFormatInstance = DateFormat.format(DATE_FORMAT, date)
         val timeFormatInstance = DateFormat.format(TIME_FORMAT, date)
         dateButton.text = dateFormatInstance
@@ -212,7 +224,15 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
             requestCode == REQUEST_SUSPECT && data != null -> {
                 val contactUri: Uri? = data.data
                 val contactFields = arrayOf(ContactsContract.Contacts.DISPLAY_NAME)
-                val cursor = contactUri?.let { requireActivity().contentResolver.query(it, contactFields, null, null, null) }
+                val cursor = contactUri?.let {
+                    requireActivity().contentResolver.query(
+                        it,
+                        contactFields,
+                        null,
+                        null,
+                        null
+                    )
+                }
                 cursor?.use {
                     if (it.count == 0) {
                         return
@@ -223,8 +243,96 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks, TimePickerFragmen
                     crimeDetailViewModel.saveCrime(crime)
                     chooseSuspectButton.text = suspect
                 }
+                cursor?.close()
             }
         }
+
+    }
+
+
+    private fun permissionsCheck() {
+        if (crime.suspect.isNotEmpty()) {
+            val hasReadContactPermission =
+                context?.let {
+                    ContextCompat.checkSelfPermission(
+                        it,
+                        Manifest.permission.READ_CONTACTS
+                    )
+                }
+            if (hasReadContactPermission == PackageManager.PERMISSION_GRANTED) {
+                READ_CONTACTS_GRANTED = true
+            } else {
+                ActivityCompat.requestPermissions(
+                    requireActivity(),
+                    arrayOf(Manifest.permission.READ_CONTACTS),
+                    REQUEST_CODE_READ_CONTACTS
+                )
+            }
+            if (READ_CONTACTS_GRANTED) {
+                callSuspect()
+            }
+        } else {
+            Toast.makeText(context, "Нужно выбрать подозреваемого!", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_CODE_READ_CONTACTS) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                READ_CONTACTS_GRANTED = true
+            }
+        }
+        if(READ_CONTACTS_GRANTED){
+            callSuspect()
+        }
+        else{
+            Toast.makeText(context, "Требуется установить разрешения", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    @SuppressLint("Range")
+    private fun callSuspect() {
+        var idSuspectContact: String? = " "
+        val idCursor: Cursor? = requireActivity().contentResolver.query(ContactsContract.Contacts.CONTENT_URI,
+            null,
+            "DISPLAY_NAME = '" + crime.suspect + "'",
+            null,
+            null
+        )
+        if (idCursor != null && idCursor.count != 0) {
+            idCursor.moveToFirst()
+            idSuspectContact = idCursor?.getString(idCursor.getColumnIndex(ContactsContract.Contacts._ID))
+            val phoneCursor: Cursor? = requireActivity().contentResolver.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                null,
+                ContactsContract.CommonDataKinds.Phone.CONTACT_ID + "=" + idSuspectContact,
+                null,
+                null)
+            if (phoneCursor != null && phoneCursor.count != 0) {
+                phoneCursor.moveToFirst()
+                val phoneNumber: String? = phoneCursor?.getString(phoneCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER))
+                val numberUri: Uri = Uri.parse("tel:$phoneNumber")
+                val callSuspectIntent = Intent(Intent.ACTION_DIAL, numberUri)
+                val packageManager: PackageManager = requireActivity().packageManager
+                val resolvedActivity: ResolveInfo? = packageManager.resolveActivity(callSuspectIntent, PackageManager.MATCH_DEFAULT_ONLY)
+                if (resolvedActivity == null) {
+                    callSuspectButton.isEnabled = false
+                    Toast.makeText(context, "Устройство не поддерживает функцию звонка!!!", Toast.LENGTH_LONG).show()
+                    return
+                }
+                startActivity(callSuspectIntent)
+            } else {
+                Toast.makeText(context, "Номер не известен!!!", Toast.LENGTH_LONG).show()
+            }
+            phoneCursor?.close()
+        } else {
+            Toast.makeText(context, "Подозреваемый отсутствует в базе контактов!!!", Toast.LENGTH_LONG).show()
+        }
+        idCursor?.close()
     }
 
 }
